@@ -40,7 +40,6 @@ print('Max Page: '+ str(maxPage))
 songs = tree1.find_class('song result-link')
 songLinks = []
 for i in songs:
-#    if i.get('class') == 'song result-link':
     songLinks.append(i.get('href'))        
 
 for i in range(maxPage -1):
@@ -49,7 +48,6 @@ for i in range(maxPage -1):
     loopsongs = looptree.find_class('song result-link')
     for song in loopsongs:
         songLinks.append(song.get('href'))
-#    pageBand = requests.get(getURL(band, page))
     
 
 print('No of tabs: ' + str(len(songLinks)))
