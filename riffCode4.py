@@ -165,6 +165,10 @@ for ii in range(len(songLinks)):
                 
             except:
                 print('Some error')
+#Count instances of notes        
+        d1 = dict((x, allPitch.count(x)) for x in allPitch)
+#        plt.bar(range(len(d1)), d1.values())
+#        plt.xticks(range(len(d1)), list(d1.keys()))
         allSongNotes.append(allNotes)
         allSongPitch.append(allPitch)
         k = k + 1
