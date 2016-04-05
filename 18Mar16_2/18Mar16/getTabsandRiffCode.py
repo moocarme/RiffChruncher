@@ -1,11 +1,32 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sat Mar 12 11:42:56 2016
-This differs from riffCode2.py as the lines do not have to indicate the string 
-tuning and assumes standard tuning
+Created on Sun Mar 13 20:18:19 2016
 
 @author: matt
 """
+# Import packages =============================================================
+
+import requests
+from lxml import html
+# =============================================================================
+
+
+# Helper functions ============================================================
+def getTab(url):
+    page = requests.get(url)
+    tree= html.fromstring(page.content)
+    myxpath = '//*[@id="cont"]/pre[2]/text()'
+    tab = tree.xpath(myxpath)
+    return tab
+
+def getTree(band, page):
+    if type(page) == int:
+        page = str(page)
+    bandURL = 'https://www.ultimate-guitar.com/search.php?band_name=' + band + \
+        '&type%5B1%5D=200&type2%5B0%5D=40000&rating%5B4%5D=5&tuning%5Bstandard%5D=standard&page=' \
+        + page + '&view_state=advanced&tab_type_group=text&app_name=ugt&order=myweight'
+    pageBand = requests.get(bandURL)
+    return html.fromstring(pageBand.content)
 
 def alphabetizeFrets(StringNo, fretNo):
     alphabet = ['a','b','c','d','e','f','g','h','i','j','k','l', \
@@ -17,35 +38,8 @@ def alphabetizeFrets(StringNo, fretNo):
     except ValueError:
         alphFret = '-'    
     return StringNo + alphFret
-    
-def fret2note(StringNo, fretNo):
-    try:
-        fretNo = int(fretNo)
-    except ValueError:
-        index = 0
-        fretNo = -1
-    notes = ['E2 ', 'F2 ', 'F#2 ', 'G2 ', 'G#2 ', 'A2 ', 'A#2 ', 'B2 ', 'C2 ', 'C#2 ', 'D2 ', 'D#2 ',\
-        'E3 ', 'F3 ', 'F#3 ', 'G3 ', 'G#3 ', 'A3 ', 'A#3 ', 'B3 ', 'C3 ', 'C#3 ', 'D3 ', 'D#3 ',\
-        'E4 ', 'F4 ', 'F#4 ', 'G4 ', 'G#4 ', 'A4 ', 'A#4 ', 'B4 ', 'C4 ', 'C#4 ', 'D4 ', 'D#4 ',\
-        'E5 ', 'F5 ', 'F#5 ', 'G5 ', 'G#5 ', 'A5 ', 'A#5 ', 'B5 ', 'C5 ', 'C#5 ', 'D5 ', 'D#5 ',
-        'E6 ', 'F6 ', 'F#6 ', 'G6 ', 'G#6 ', 'A6 ', 'A#6 ', 'B6 ', 'C6 ', 'C#6 ', 'D6 ', 'D#6 ','']
-    if abs(fretNo) >= len(notes):
-        fretNo = fretNo%len(notes)
-    if StringNo == 6:  # low E string
-        index = 0
-    elif StringNo == 5: # A string
-        index = 5
-    elif StringNo == 4: # G string
-        index = 10
-    elif StringNo == 3: # D string
-        index = 15
-    elif StringNo == 2: # A string
-        index = 19   
-    elif StringNo == 1: # A string
-        index = 24 
-    return notes[index + fretNo]
-    
 #tabs = f
+strings= ['e','a','d','g','b','E','A','D','G','B']
 
 def is_int(x):
     try:
@@ -54,47 +48,81 @@ def is_int(x):
     except ValueError:
         return False
 
-strings= ['e','a','d','g','b','E','A','D','G','B']
 def check4Strings(myStr):
     t1 = any([x == i for x in myStr for i in strings])
     t2 = any([x == '|' or x == '-' or is_int(x) for x in myStr])
     return t1 and t2
+# ============================================================================
 
-k = 0
-outerLoopCounter = 0
 
-allSongNotes, allSongPitch = [],[]
+band = 'metallica'
+
+# Read first search page to get total number of pages in search result ========
+page = '1'
+tree1 = getTree(band, page)
+pages = tree1.find_class('paging')
+maxPage = len(list(pages[0].iter('a')))
+print('Max Page: '+ str(maxPage))
+
+
+# Get song result links from first page =======================================
+songs = tree1.find_class('song result-link')
+songLinks = []
+for i1 in songs:
+    songLinks.append(i1.get('href'))        
+
+# Get song result links from remaining pages in search ========================
+for i2 in range(maxPage -1):
+    looppage = i2 + 2
+    looptree = getTree(band, str(looppage))
+    loopsongs = looptree.find_class('song result-link')
+    for song in loopsongs:
+        songLinks.append(song.get('href'))  
+
+print('No of tabs: ' + str(len(songLinks)))
+
+# Grab tabs from the individual web pages from the given links using getTab fn 
+myTabs = []
+for i3 in songLinks:
+    myTabs.append(getTab(i3))
+
+
+k = 0 # counter for number of good tabs
+outerLoopCounter = 0 # counter for number of processed tabs
+allSongNotes= [0]*len(songLinks) # initialize result list
+
 for ii in range(len(songLinks)):
     tab = myTabs[ii][0]
     col1 = []
     tab = str(tab).split('\\n')
     tab = (tab[0].rstrip()).split('\n')
-#    print(tab)
+#    print(tab) # see tab
+    
+#   Grab first 3 lines of tab to determin if tabluture    
     for lineno, linestr in enumerate(tab, start = 0):
         try:
             col1.append(linestr[:3])
         except:
             col1.append(linestr[0])
             
+#   See if first 3 chars contain common chars for tabluture
     firstCol = map(int, [x[:2] == '|-' or x[:2] == '||' or check4Strings(x) for x in col1])
-    
+
+#   Determines first line of set pf tablutures 
     firstLineCol = [0]*(lineno+2)
     for i in range(len(firstCol)-1):
-        count = 0
         if firstCol[i] > 0 and firstCol[i+1] > 0:
             firstCol[i+1] = firstCol[i] + 1
-            if firstCol[i+1] % 6 == 0: # Finds the end of the line
-                firstLineCol[i-4] = 1      # i-4 to et to the beginning of the bar
-    #print(firstCol, firstLineCol)
-            
+            if mod(firstCol[i+1], 6) == 0: # Finds the end of the line of tabluture
+                firstLineCol[i-4] = 1      # i-4 to et to the beginning of tabluture
+                
 #    tab.seek(0)
-    rowtype = 0
-    E1notes, B2notes, G3notes, D4notes, A5notes, E6notes = [], [], [], [], [], []
-    E1pitch, B2pitch, G3pitch, D4pitch, A5pitch, E6pitch = [], [], [], [], [], [] 
-    nummE1, nummB2, nummG3, nummD4, nummA5, nummE6 = 0, 0, 0, 0, 0, 0
+    rowtype = 0    
+    E1notes = []; B2notes = []; G3notes = []; D4notes = []; A5notes = []; E6notes = []
+    nummE1 = 0; nummB2 = 0; nummG3 = 0; nummD4 = 0; nummA5 = 0; nummE6 = 0
     
+#   Iterate through each line
     for lineno, linestr in enumerate(tab, start=0):
-    #    rowtype = linestr[0] #what string, what type of  data
         if firstLineCol[lineno] == 1:
             rowtype = 1
         elif rowtype == 6 or rowtype == 0:
@@ -104,77 +132,56 @@ for ii in range(len(songLinks)):
 #        print 'rowtype: ' + str(rowtype)
 #        print "line number: " + str(lineno) + ": " + linestr.rstrip()
         
+#       Iterate throuh each column in line 
         for colno, linecol in enumerate(linestr):
 #            print "line number: " + str(lineno) + 'rowtype: ' + str(rowtype) +" col number: " + str(colno) + ": " + linecol.rstrip()
-    
             if rowtype == 1: #'1E'
                 E1notes.append(alphabetizeFrets(rowtype, str(linecol)))
-                E1pitch.append(fret2note(rowtype, linecol))
                 nummE1 = nummE1 + 1
             elif rowtype == 2: #'2B'
-                B2notes.append(alphabetizeFrets(rowtype, str(linecol))) 
-                B2pitch.append(fret2note(rowtype, linecol))
+                B2notes.append(alphabetizeFrets(rowtype, str(linecol)))                
                 nummB2 = nummB2 + 1
             elif rowtype == 3: #'3G'
                 G3notes.append(alphabetizeFrets(rowtype, str(linecol)))
-                G3pitch.append(fret2note(rowtype, linecol))
                 nummG3 = nummG3 + 1
             elif rowtype == 4: #'4D'
-                D4notes.append(alphabetizeFrets(rowtype, str(linecol)))   
-                D4pitch.append(fret2note(rowtype, linecol))
+                D4notes.append(alphabetizeFrets(rowtype, str(linecol)))                
                 nummD4 = nummD4 + 1
             elif rowtype == 5: #'5A'
-                A5notes.append(alphabetizeFrets(rowtype, str(linecol)))   
-                A5pitch.append(fret2note(rowtype, linecol))
+                A5notes.append(alphabetizeFrets(rowtype, str(linecol)))                
                 nummA5 = nummA5 + 1
             elif rowtype == 6: #'6E'
-                E6notes.append(alphabetizeFrets(rowtype, str(linecol)))  
-                E6pitch.append(fret2note(rowtype, linecol))
+                E6notes.append(alphabetizeFrets(rowtype, str(linecol)))                
                 nummE6 = nummE6 + 1
             
-    
     print 'cols ' + '  ' + str(nummE1) + '  ' + str(nummB2) + '  ' + str(nummG3) + '  ' + str(nummD4) + '  ' + str(nummA5) + '  ' + str(nummE6)
-    print 'lines ' + str(lineno)
+#    print 'lines ' + str(lineno)
     
-    allNotes, allPitch = [],[]
+    allNotes=[]
     if all([i == nummE1 for i in [nummB2, nummG3, nummD4, nummA5, nummE6]]) and nummE1 != 0:
         for i in range(nummE1):
             try:
-                inputNote, inputPitch = '',''  
+                inputNote = ''  
                 if E1notes[i][1] != '-':
                     inputNote = inputNote + E1notes[i]
-                    inputPitch = inputPitch + E1pitch[i]
                 if B2notes[i][1] != '-':
                     inputNote = inputNote + B2notes[i]
-                    inputPitch = inputPitch + B2pitch[i]
                 if G3notes[i][1] != '-':
                     inputNote = inputNote + G3notes[i]
-                    inputPitch = inputPitch + G3pitch[i]
                 if D4notes[i][1] != '-':
                     inputNote = inputNote + D4notes[i]
-                    inputPitch = inputPitch + D4pitch[i]
                 if A5notes[i][1] != '-':
                     inputNote = inputNote + A5notes[i]
-                    inputPitch = inputPitch + A5pitch[i]
                 if E6notes[i][1] != '-':
                     inputNote = inputNote + E6notes[i]
-                    inputPitch = inputPitch + E6pitch[i]
                 if inputNote and inputNote !='1b2c3d4e5f6g': 
-                    allNotes.append(inputNote)  
-                    allPitch.append(inputPitch)
+                    allNotes.append(inputNote)   
                 
             except:
                 print('Some error')
-#Count instances of notes        
-        d1 = dict((x, allPitch.count(x)) for x in allPitch)
-#        plt.bar(range(len(d1)), d1.values())
-#        plt.xticks(range(len(d1)), list(d1.keys()))
-        allSongNotes.append(allNotes)
-        allSongPitch.append(allPitch)
+        allSongNotes[k] = allNotes
         k = k + 1
     else:
         print('Columns in tab not same length')
     outerLoopCounter = outerLoopCounter +1
 print('Total tabs = ' + str(k) + ' out of ' + str(outerLoopCounter))
-
-#f.close()
