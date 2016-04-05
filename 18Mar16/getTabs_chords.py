@@ -10,18 +10,18 @@ from lxml import html
 from lxml.etree import tostring
 
 def getTab(url):
-    page = requests.get(url)
-    tree= html.fromstring(page.content)
-    myxpath = '//*[@id="cont"]/pre[2]/text()'
-    tab = tree.xpath(myxpath)
+    webPage = requests.get(url)
+    webTree= html.fromstring(webPage.content)
+    tabXpath = '//*[@id="cont"]/pre[2]/text()'
+    tab = webTree.xpath(tabXpath)
     return tab
     
 def getChords(url):
-    page = requests.get(url)
-    tree= html.fromstring(page.content)
-    t1 = tree.find_class('js-tab-content')
-    l2 = list(t1[0].iter('span')) # starts at element 0
-    return [tostring(l2[i], with_tail = False).strip('</span>') for i in range(len(l2))]
+    webPage = requests.get(url)
+    webTree= html.fromstring(webPage.content)
+    tabContentClass = webTree.find_class('js-tab-content')
+    chordsList = list(tabContentClass[0].iter('span')) # starts at element 0
+    return [tostring(chordsList[i], with_tail = False).strip('</span>') for i in range(len(l2))]
 
 allchordsURL = 'https://tabs.ultimate-guitar.com/m/misc/all_the_chords_crd.htm'
 allChordsTab = getTab(allchordsURL)
