@@ -9,3 +9,5 @@ progressions used.
 A chord progression is the different chords used in songs, as well as the order in which they are used. For example Pearl Jam's 
 'Elderly woman...' uses a chord progression D C G G for the much of the verse and chorus.
 Both the notes used and their respective order is needed.
+
+To run use the getChordsandPlot.py that sums up chord progressions used in country music.
