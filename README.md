@@ -1,4 +1,4 @@
-# Riff Chrunching Data-Mined Guitar Tablature to Investigate Why All Country Music SOunds Similar 
+# Riff Chrunching Data-Mined Guitar Tablature to Investigate Why All Country Music Sounds Similar 
 
 The motivation of this project is to try to understand why all country music sounds the same. I hypothesize that all country music sounds the same becasue many songs all use the same chord progession, whereas many other genres of music have a greater variation in the chord 
 progressions used.
