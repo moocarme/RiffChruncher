@@ -11,3 +11,6 @@ A chord progression is the different chords used in songs, as well as the order 
 Both the notes used and their respective order is needed.
 
 To run use the getChordsandPlot.py that sums up chord progressions used in country music.
+The output is  2 bar charts, the first shows the count of chord progressions, the second shows the usage of various chords.
+
+We find that Chords involving variations of G, C, and D are very popular in country music and those three chords account for about 45% of the total chords, if we look at the top 8 chords (G, C, D, A, F, Am, Em, E) they account for almost 75%. For context there are over 800 various chord combinations (see: https://tabs.ultimate-guitar.com/m/misc/all_the_chords_crd.htm). So we can see how these 8 chords and their various combinations can lead to music that may sound similar.
