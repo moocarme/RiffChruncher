@@ -10,6 +10,7 @@ from collections import Counter
 from nltk.corpus import stopwords
 import random
 import pickle
+import numpy as np
 
 # = Helper Functions =========================================================
 
@@ -21,7 +22,7 @@ def WeightedPick(d):
         if r < s: return k
     return k
 
-# ================================================================
+# =============================================================================
 
 # = Post-scrape ===============================================================
 
@@ -54,6 +55,10 @@ plt.bar(range(res), sortedVals[:res]/sum(sortedVals)*100., align='center')
 plt.xticks(range(res), sortedKeys[:res], rotation = 60)
 plt.xlabel('Lyric'); plt.ylabel('Count (%)')
 
+# = Plot cumulative distribution function
+plt.figure(45); plt.clf()
+plt.plot(np.cumsum(sortedVals)/sum(sortedVals))
+plt.xlabel('Number of words'); plt.ylabel('Cumulative distribution function')
 # = Country-Robo lyric machine ===============================================
 # = Uses a naive-Bayes approach to choose the likely next word to create a lyric
 
@@ -66,12 +71,23 @@ for song in songLyrics:
         except KeyError: # if key doesnt exist
             lyricDict.setdefault(song[word], {})[song[word+1]] = 1
 
-# initiliaxe with random word
-robo_lyric = [random.choice(lyricDict.keys())]
+
+def createVerse(mydict, verseLen, lyricLen):
+    robo_lyric = [random.choice(mydict.keys())] # initiliaxe with random word
+    for j in range(verseLen):
+        for i in range(lyricLen):
+            robo_lyric.append(WeightedPick(lyricDict[robo_lyric[-1]]))
+    
+    for i in range(verseLen):
+        robo_lyric.insert((i+1)*lyricLen+i,'\n')  
+    return(' '.join(robo_lyric))
+
 lyricLen = 10 # length of lyric
-for i in range(lyricLen):
-    robo_lyric.append(WeightedPick(lyricDict[robo_lyric[-1]]))
-robo_lyric[0] = robo_lyric[0].title() 
-robo_lyric = ' '.join(robo_lyric)
-print(robo_lyric)
+chorusLen = 4    
+random.seed(120)
+chorus = createVerse(lyricDict, chorusLen,lyricLen)
+verse1 = createVerse(lyricDict, chorusLen,lyricLen)
+verse2 = createVerse(lyricDict, chorusLen,lyricLen)
+mySong = verse1 + '\n\r\n' + chorus + '\n\r\n' + verse2 + '\n\r\n' + chorus 
+print(mySong)
 # Actual Lyric '27 seconds on a party bone is the party for me' XD XD XD
