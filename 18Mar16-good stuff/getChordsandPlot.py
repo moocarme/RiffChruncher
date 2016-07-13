@@ -10,7 +10,7 @@ import requests
 from lxml import html
 from lxml.etree import tostring
 import matplotlib.pyplot as plt
-import numpy as np
+
 
 # = Helper Functions =========================================================
 
@@ -28,7 +28,7 @@ def getChords(url):
     webTree= html.fromstring(webPage.content)
     tabContentClass = webTree.find_class('js-tab-content')
     chordsList = list(tabContentClass[0].iter('span')) # starts at element 0
-    return [tostring(chord, with_tail = False).strip('</span>') for chord in chordsList]
+    return [tostring(chordsList[i], with_tail = False).strip('</span>') for i in range(len(chordsList))]
 
 # = Function to get xml tree given the band name
 def getBandTree(band, page):
@@ -74,7 +74,7 @@ page = '1' # start at page 1, in str format as will be added to html str
 # = Dictionary of genres that relate to ultimate guitar website
 genresDict = {'alternative': '20', 'country': '6', 'blues': '2', 'classical':'5', \
     'jazz':'11', 'pop':'14', 'reggae': '24', 'rock':'21', 'world':'19'}
-genre = 'world'
+genre = 'country'
 
 # = Get xml tree for first page
 tree1 = getGenreTree(genre, page)
@@ -115,7 +115,7 @@ sortedChordsDict, sortedChordsDictVal, sortedChordsDictKey = sortAndCount(chords
 sumChords = float(sum(sortedChordsDictVal))
 fracSortedChordsDictVal = [i/sumChords*100 for i in sortedChordsDictVal]
 
-# = Test chord progression for 1 set of chords
+# Test chord progression for 1 set of chords
 chordProgressionLen = 4
 testChords = chordsTotal
 chordProgression = [0]*(len(testChords)-chordProgressionLen)
@@ -127,7 +127,7 @@ for i in range(len(testChords) - chordProgressionLen):
 #sortedMainChordProgDict, sortedMainChordProgDictVal, sortedMainChordProgDictKey = sortAndCount(mainChordProgression)
 sortedMainChordProgDict, sortedMainChordProgDictVal, sortedMainChordProgDictKey = sortAndCount(chordProgression)
 
-# = Remove permutations of the chords (i.e. GCDAm == CDAmG)
+# Remove permutations of the chords (i.e. GCDAm == CDAmG)
 newChordProg = []
 newChordProgVals = []
 noEntries = 100
@@ -137,18 +137,9 @@ for j in range(len(sortedMainChordProgDictKey[:noEntries])):
         newChordProg.append(sortedMainChordProgDictKey[j])
         newChordProgVals.append(sortedMainChordProgDictVal[j])
 
-# = Plot in bar chart        
-plt.figure(4); plt.clf(); res = 20
+# PLot in bar chart        
+plt.figure(4); plt.clf()
+res = 20
 plt.bar(range(len(newChordProgVals[:res])), newChordProgVals[:res], align='center')
 plt.xticks(range(len(newChordProgVals[:res])), newChordProg[:res], rotation = 60)
-plt.xlabel('Chord Progression'); plt.ylabel('Count')
-
-# = Plot individual chords in bar chart
-plt.figure(5); plt.clf(); res = 20
-plt.bar(range(res), fracSortedChordsDictVal[:res], align='center')
-plt.xticks(range(res), sortedChordsDictKey[:res], rotation = 60)
-plt.xlabel('Chord'); plt.ylabel('Usage (%}')
 plt.draw()
-
-plt.figure(6); plt.clf()
-plt.plot(arange(len(fracSortedChordsDictVal))+1, np.cumsum(fracSortedChordsDictVal)/sum(fracSortedChordsDictVal))
