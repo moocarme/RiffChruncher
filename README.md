@@ -8,7 +8,7 @@ Both the notes used and their respective order is needed. The assumption that th
 
 ### Files
 This project contains files that grabs tabluture from the internet, specifically '[ultimate-guitar.com](ultimate-guitar.com)' and reads them. 
-The 'getChordsandPlot.py' script retrives the chords that users of the site have entered. Only 5 star rated tablatures are used in standard tuning. 
+The 'getChordsandPlot.py' script retrives the chords that users of the site have entered. Only 5 star rated tablatures are used in standard tuning.  
 Mining them for data on the various notes played in songs, the end goal would be analyse different genres of music to show that country music shows less variation in the chords and chord progressions used compared to other genres of Music
 
 ### Usage
