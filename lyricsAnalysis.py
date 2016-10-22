@@ -28,8 +28,6 @@ def WeightedPick(d):
 
 # =============================================================================
 
-# = Post-scrape ===============================================================
-
 class lyric_analysis(object):
     
     def __init__(self, lyrics):
@@ -126,5 +124,4 @@ analysis = lyric_analysis(songLyrics)
 analysis.create_dict()
 analysis.plot_word_freq(resolution = 40)
 analysis.lyric_model()
-analysis.generate_lyrics(10, 4)
-
+analysis.generate_lyrics(lyric_len = 10, chorus_len = 4)
