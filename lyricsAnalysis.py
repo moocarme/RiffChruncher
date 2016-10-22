@@ -25,7 +25,7 @@ def WeightedPick(d):
         s += w
         if r < s: return k
     return k
-    
+
 # =============================================================================
 
 # = Post-scrape ===============================================================
@@ -127,3 +127,4 @@ analysis.create_dict()
 analysis.plot_word_freq(resolution = 40)
 analysis.lyric_model()
 analysis.generate_lyrics(10, 4)
+
